@@ -829,3 +829,25 @@ dump_process::~dump_process(void)
 	if( _ph != NULL )
 		CloseHandle( _ph );
 }
+
+extern "C"
+void DumpModule(DWORD pid, void *address, char *output_path)
+{
+    auto db = new pe_hash_database((char*)"");
+
+    PD_OPTIONS options;
+    options.ImportRec = true;
+    options.ForceGenHeader = false;
+    options.Verbose = false;
+    options.EntryPointOverride = -1;
+    options.ReconstructHeaderAsDll = false;
+    options.DumpChunks = true;
+    options.NumberOfThreads = 16; // Default 16 threads
+    options.set_output_path(output_path);
+
+    auto dp = new dump_process(pid, db, &options, true);
+    dp->dump_region(reinterpret_cast<__int64>(address));
+
+	delete db;
+	delete dp;
+}
